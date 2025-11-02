@@ -21,4 +21,7 @@
     "qris-payment": "^1.0.5",
     "qs": "^6.12.1"
   }
+  "engines": {
+    "node": "18.x"
+  }
 }
