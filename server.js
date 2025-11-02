@@ -128,6 +128,4 @@ app.get('/panel-admin', adminPageMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'panel-admin.html'));
 });
 
-app.listen(port, () => {
-    console.log(`\nServer berjalan di http://localhost:${port}`);
-});
+module.exports = app;
