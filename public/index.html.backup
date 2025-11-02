@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="id" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bovalone API Docs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <div v-if="!user" class="d-flex justify-content-center align-items-center vh-100">
+             <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        <div v-if="user">
+            <header class="app-header">
+                <nav class="navbar navbar-expand-lg">
+                    <div class="container-fluid">
+                        <a class="navbar-brand" href="#"><i class="bi bi-box-fill me-2"></i>Bovalone API Docs</a>
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" ref="navbarToggler">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse" id="mainNavbar">
+                            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                                <li class="nav-item"><a class="nav-link" :class="{ active: currentView === 'dashboard' }" href="#" @click.prevent="navigateTo('dashboard')"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+                                <li class="nav-item"><a class="nav-link" :class="{ active: currentView === 'tester' }" href="#" @click.prevent="navigateTo('tester')"><i class="bi bi-joystick me-2"></i>API Tester</a></li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><i class="bi bi-archive-fill me-2"></i>Manajemen</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" :class="{ active: currentView === 'keys' }" href="#" @click.prevent="navigateTo('keys')"><i class="bi bi-key-fill me-2"></i>API Keys</a></li>
+                                        <li><a class="dropdown-item" href="/digital"><i class="bi bi-cpu-fill me-2"></i>Produk Digital</a></li>
+                                        <li><a class="dropdown-item" :class="{ active: currentView === 'security' }" href="#" @click.prevent="navigateTo('security')"><i class="bi bi-shield-lock-fill me-2"></i>Keamanan</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item"><a class="nav-link" :class="{ active: currentView === 'billing' }" href="#" @click.prevent="navigateTo('billing')"><i class="bi bi-wallet2 me-2"></i>Billing</a></li>
+                                <li class="nav-item"><a class="nav-link" :class="{ active: currentView === 'callback' }" href="#" @click.prevent="navigateTo('callback')"><i class="bi bi-hdd-network-fill me-2"></i>Callback</a></li>
+                            </ul>
+                            <div class="dropdown">
+                                <a href="#" class="d-flex align-items-center text-body text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle fs-4 me-2"></i><strong>{{ user.username }}</strong>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end text-small shadow">
+                                    <li><a class="dropdown-item" href="/profile"><i class="bi bi-person-fill me-2"></i>Profil Saya</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" @click.prevent="handleLogout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </header>
+            
+            <main class="main-content">
+                 <div v-if="currentView === 'dashboard'">
+                    <h2 class="main-title">Selamat datang kembali!</h2>
+                    <p class="text-secondary">Jelajahi dan uji coba API yang tersedia di bawah ini.</p>
+                    <template v-for="(group, category) in groupedApis" :key="category">
+                        <h5 class="sub-title category-title">{{ category }}</h5>
+                        <div class="api-collection-list">
+                            <div v-for="api in group" :key="api.path" class="api-list-item">
+                                <div class="api-info">
+                                    <span class="api-method" :class="'method-' + (api.method ? api.method.toLowerCase() : 'get')">{{ api.method || '...' }}</span>
+                                    <span class="api-name">{{ formatApiName(api.name) }}</span>
+                                </div>
+                                <div class="api-actions">
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-secondary" @click="showExampleModal(api, 'curl')"><i class="icon-curl bi bi-braces me-2"></i>cURL</button>
+                                        <button class="btn btn-sm btn-secondary" @click="showExampleModal(api, 'nodejs')"><i class="icon-nodejs bi bi-filetype-js me-2"></i>Node.js</button>
+                                        <button class="btn btn-sm btn-secondary" @click="showExampleModal(api, 'php')"><i class="icon-php bi bi-filetype-php me-2"></i>PHP</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div v-if="currentView === 'tester'">
+                     <h2 class="main-title"><i class="bi bi-joystick me-2"></i>API Tester</h2>
+                     <p class="text-muted">Gunakan form di bawah untuk melakukan tes pada API.</p>
+                     <div class="card"><div class="card-body">
+                         <div class="row g-4">
+                            <div class="col-lg-5">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">1. Pilih API Key</label>
+                                    <div class="searchable-select" ref="apiKeySelect">
+                                        <div class="select-display" @click="toggleApiKeySelect">
+                                            <span>{{ selectedApiKeyName || (apiKeys.length === 0 ? 'Buat API Key dulu' : '-- Pilih API Key --') }}</span>
+                                            <i class="bi bi-chevron-down"></i>
+                                        </div>
+                                        <div class="select-dropdown" v-if="isApiKeySelectOpen">
+                                            <input type="text" class="form-control select-search" v-model="apiKeySearchTerm" placeholder="Cari API Key...">
+                                            <ul class="select-list">
+                                                <li v-for="key in filteredApiKeys" :key="key._id" class="select-option" @click="selectApiKey(key)">{{ key.name }}</li>
+                                                <li v-if="filteredApiKeys.length === 0" class="select-option disabled">Tidak ada hasil.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">2. Pilih Layanan API</label>
+                                    <div class="searchable-select" ref="apiSelect">
+                                        <div class="select-display" @click="toggleApiSelect">
+                                            <span>{{ selectedApiName || '-- Pilih salah satu --' }}</span>
+                                            <i class="bi bi-chevron-down"></i>
+                                        </div>
+                                        <div class="select-dropdown" v-if="isApiSelectOpen">
+                                            <input type="text" class="form-control select-search" v-model="apiSearchTerm" placeholder="Cari layanan...">
+                                            <ul class="select-list">
+                                                <template v-if="Object.keys(filteredGroupedApis).length > 0" v-for="(group, category) in filteredGroupedApis" :key="category">
+                                                    <li class="select-optgroup">{{ category.toUpperCase() }}</li>
+                                                    <li v-for="api in group" :key="api.path" class="select-option" @click="selectApi(api)">{{ formatApiName(api.name) }}</li>
+                                                </template>
+                                                <li v-else class="select-option disabled">Tidak ada hasil.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <form v-if="apiInputs.length > 0" @submit.prevent="executeApi">
+                                    <hr class="form-divider"><h5 class="mb-3 fw-bold">3. Isi Parameter</h5>
+                                    <div v-for="input in apiInputs" class="mb-3"><label class="form-label">{{ input.label }} <span v-if="input.required" class="text-danger">*</span></label><select v-if="input.type === 'select'" class="form-select custom-select" v-model="formValues[input.name]" :required="input.required"><option v-for="option in input.options" :value="option.value">{{ option.text }}</option></select><input v-else :type="input.type" class="form-control" v-model="formValues[input.name]" :required="input.required" :placeholder="input.label"></div>
+                                    <button type="submit" class="btn btn-primary w-100" :disabled="isApiLoading || !selectedApiKey"><span v-if="isApiLoading" class="spinner-border spinner-border-sm me-2"></span><i class="bi bi-send me-2"></i>Kirim</button>
+                                </form>
+                            </div>
+                            <div class="col-lg-7">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="card-title fw-bold mb-0">Hasil Response</h5>
+                                    <div v-if="apiResponse" class="response-actions">
+                                        <button class="btn btn-sm btn-outline-secondary" @click="copyCode(JSON.stringify(apiResponse, null, 2), 'Response')"><i class="bi bi-clipboard"></i> Copy</button>
+                                        <button class="btn btn-sm btn-outline-secondary" @click="downloadResponse"><i class="bi bi-download"></i> Download</button>
+                                    </div>
+                                </div>
+                                <div v-if="isApiLoading" class="text-center p-5"><div class="spinner-border text-primary"></div></div>
+                                <div v-else-if="apiResponse"><pre class="response-pre"><code class="language-json">{{ JSON.stringify(apiResponse, null, 2) }}</code></pre></div>
+                                <div v-else class="text-center p-5 bg-body-secondary rounded"><p class="text-muted m-0">Hasil akan muncul di sini.</p></div>
+                            </div>
+                        </div>
+                     </div></div>
+                </div>
+                <div v-if="currentView === 'keys'">
+                    <h2 class="main-title mb-4"><i class="bi bi-key-fill me-2"></i>Manajemen API Key</h2>
+                    <div class="alert alert-info" v-if="apiKeyConfig.price">
+                        Harga untuk membuat 1 API Key baru adalah <strong>Rp{{ apiKeyConfig.price.toLocaleString('id-ID') }}</strong> dengan masa aktif <strong>{{ apiKeyConfig.duration }} hari</strong>.
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><form @submit.prevent="generateApiKey" class="input-group"><input type="text" class="form-control" v-model="newApiKeyName" placeholder="Nama untuk key baru..." required><button type="submit" class="btn btn-primary" :disabled="isLoading"><span v-if="isLoading" class="spinner-border spinner-border-sm me-1"></span>Generate</button></form></div>
+                        <div class="list-group list-group-flush">
+                             <div v-if="apiKeys.length === 0" class="list-group-item text-center">Belum ada API key.</div>
+                             <div v-for="key in apiKeys" :key="key._id" class="list-group-item data-row">
+                                 <div class="flex-grow-1">
+                                    <div><strong>{{ key.name }}</strong></div>
+                                    <small class="text-secondary">Kadaluarsa: {{ formatDate(key.expiresAt) }}</small>
+                                 </div>
+                                 <div class="text-muted"><code class="key-code">{{ key.key.substring(0, 8) }}...</code></div>
+                                 <div class="ms-4"><button class="btn btn-sm btn-danger" @click="deleteApiKey(key._id)"><i class="bi bi-trash"></i></button></div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-if="currentView === 'security'">
+                    <h2 class="main-title mb-4"><i class="bi bi-shield-lock-fill me-2"></i>Keamanan IP</h2>
+                    <div class="card">
+                         <div class="card-header"><form @submit.prevent="addIp('whitelist')" class="input-group"><input type="text" class="form-control" v-model="newIpAddress" placeholder="e.g., 192.168.1.1" required><button class="btn btn-primary" type="submit" :disabled="isLoading"><span v-if="isLoading" class="spinner-border spinner-border-sm me-1"></span>Tambah</button></form></div>
+                         <div class="list-group list-group-flush">
+                             <div v-if="!security.whitelist || security.whitelist.length === 0" class="list-group-item text-center">Tidak ada IP yang di-whitelist.</div>
+                             <div v-for="ip in security.whitelist" :key="ip" class="list-group-item data-row">
+                                 <div class="flex-grow-1"><code>{{ ip }}</code></div>
+                                 <div class="ms-4"><button class="btn btn-sm btn-danger" @click="removeIp('whitelist', ip)"><i class="bi bi-trash"></i></button></div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-if="currentView === 'billing'">
+                    <h2 class="main-title"><i class="bi bi-wallet2 me-2"></i>Billing & Top Up</h2>
+                    <p class="text-secondary">Saldumu saat ini: <strong>Rp{{ userBalance.toLocaleString('id-ID') }}</strong></p>
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div v-if="!qrisData">
+                                <h5 class="card-title">Top Up Saldo</h5>
+                                <form @submit.prevent="handleTopUp">
+                                    <div class="mb-3">
+                                        <label class="form-label">Jumlah Top Up (Minimal Rp100)</label>
+                                        <input type="number" class="form-control" v-model="topUpAmount" placeholder="Contoh: 50000" min="100" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" :disabled="isLoading"><span v-if="isLoading" class="spinner-border spinner-border-sm"></span> Lanjutkan ke Pembayaran</button>
+                                </form>
+                            </div>
+                            <div v-else class="text-center">
+                                <h5 class="card-title">Selesaikan Pembayaran</h5>
+                                <p class="text-secondary">Scan QRIS di bawah dan transfer sejumlah:</p>
+                                <div class="alert alert-info">
+                                    <strong style="font-size: 1.5rem;">Rp{{ qrisData.uniqueAmount.toLocaleString('id-ID') }}</strong><br>
+                                    <small>(Pastikan jumlahnya sama persis termasuk 3 digit terakhir)</small>
+                                </div>
+                                <img :src="qrisData.qrisPath || '/qris.png'" alt="QRIS" class="img-fluid my-3" style="max-width: 250px;">
+                                <p>Menunggu pembayaran... <span class="spinner-border spinner-border-sm"></span></p>
+                                <small class="text-muted">Batas waktu: {{ new Date(qrisData.expiresAt).toLocaleTimeString('id-ID') }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h5 class="card-title mb-0">Riwayat Transaksi</h5></div>
+                        <div class="table-responsive">
+                            <table class="table table-stack-on-mobile">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Tanggal</th>
+                                        <th scope="col">Jumlah Bayar</th>
+                                        <th scope="col">Saldo Bertambah</th>
+                                        <th scope="col">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-if="transactionHistory.length === 0">
+                                        <td colspan="4" class="text-center text-muted py-4">Tidak ada riwayat transaksi.</td>
+                                    </tr>
+                                    <tr v-for="trx in transactionHistory" :key="trx._id">
+                                        <td data-label="Tanggal">{{ formatDate(trx.createdAt, true) }}</td>
+                                        <td data-label="Jumlah Bayar">Rp{{ trx.uniqueAmount.toLocaleString('id-ID') }}</td>
+                                        <td data-label="Saldo Bertambah">Rp{{ trx.amount.toLocaleString('id-ID') }}</td>
+                                        <td data-label="Status">
+                                            <span class="badge" :class="{'bg-success': trx.status === 'completed', 'bg-warning text-dark': trx.status === 'pending', 'bg-danger': trx.status === 'expired'}">{{ trx.status }}</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div v-if="currentView === 'callback'">
+                    <h2 class="main-title mb-4"><i class="bi bi-hdd-network-fill me-2"></i>Pengaturan Notifikasi Callback</h2>
+                    <div class="row g-4">
+                        <div class="col-lg-7">
+                             <div class="card">
+                                <div class="card-body">
+                                    <form @submit.prevent="saveCallbackSettings">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5 class="card-title mb-0">Pengaturan Kredensial & Webhook</h5>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" role="switch" id="callbackSwitch" v-model="callbackSettings.isActive">
+                                                <label class="form-check-label" for="callbackSwitch">{{ callbackSettings.isActive ? 'Aktif' : 'Nonaktif' }}</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Username Mutasi</label>
+                                            <input type="text" class="form-control" v-model="callbackSettings.mutasiAuthUsername" placeholder="Username mutasi milikmu">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Token Mutasi</label>
+                                            <input type="password" class="form-control" v-model="callbackSettings.mutasiAuthToken" placeholder="Kosongkan jika tidak ingin mengubah">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="webhookUrl" class="form-label">Webhook URL</label>
+                                            <input type="url" class="form-control" id="webhookUrl" v-model="callbackSettings.webhookUrl" placeholder="https://tujuan-webhook-kamu.com/path">
+                                            <div class="form-text">Kami akan mengirim notifikasi POST ke URL ini saat pembayaran terdeteksi.</div>
+                                        </div>
+                                        <hr/>
+                                        <h5 class="card-title mb-3">Upload Gambar QRIS</h5>
+                                        <div class="mb-3">
+                                            <label class="form-label">File QRIS (.png, .jpg, .jpeg)</label>
+                                            <input type="file" class="form-control" @change="handleQrisFileChange" accept="image/png, image/jpeg, image/jpg">
+                                        </div>
+                                        <div v-if="callbackSettings.qrisImagePath" class="mb-3">
+                                            <label class="form-label">QRIS Saat Ini:</label><br>
+                                            <img :src="callbackSettings.qrisImagePath + '?t=' + new Date().getTime()" class="img-thumbnail" style="max-width: 150px;" alt="QRIS Pengguna">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary" :disabled="isLoading"><span v-if="isLoading" class="spinner-border spinner-border-sm me-1"></span>Simpan Pengaturan</button>
+                                    </form>
+                                </div>
+                             </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Informasi Endpoint Pengecekan</h5>
+                                    <p class="text-secondary">Gunakan URL di bawah ini untuk dipanggil secara berkala (misal: via cron job) untuk memicu pengecekan pembayaran.</p>
+                                    <div class="alert alert-info">
+                                        <strong>URL Endpoint:</strong>
+                                        <div class="input-group mt-2">
+                                            <input type="text" class="form-control" :value="baseUrl + '/api/callback/check'" readonly>
+                                            <button class="btn btn-secondary" @click="copyCode(baseUrl + '/api/callback/check', 'URL')"><i class="bi bi-clipboard"></i></button>
+                                        </div>
+                                        <ul class="small text-muted mt-2 mb-0">
+                                            <li>Metode: <strong>POST</strong></li>
+                                            <li>Header: <strong>Authorization: Bearer [API_KEY_MILIKMU]</strong></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                     <h5 class="card-title">Pemicu Manual</h5>
+                                     <p class="text-secondary">Gunakan form di bawah ini untuk memicu pengecekan secara manual.</p>
+                                     <div class="mb-3">
+                                        <label class="form-label">Gunakan API Key</label>
+                                        <select class="form-select" v-model="selectedCallbackApiKey">
+                                            <option disabled value="">-- Pilih API Key --</option>
+                                            <option v-for="key in apiKeys" :value="key.key">{{ key.name }}</option>
+                                        </select>
+                                     </div>
+                                     <button class="btn btn-success w-100" @click="triggerCallbackCheck" :disabled="isCheckingCallback">
+                                        <span v-if="isCheckingCallback" class="spinner-border spinner-border-sm me-2"></span>
+                                        Cek Sekarang
+                                     </button>
+                                     <div v-if="callbackCheckResult.message" class="alert mt-3" :class="callbackCheckResult.type === 'success' ? 'alert-success' : 'alert-danger'" role="alert">
+                                        {{ callbackCheckResult.message }}
+                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            
+            <div v-if="newApiKey" class="modal fade show" style="display: block;" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">API Key Baru Dibuat</h5></div><div class="modal-body"><div class="alert alert-warning"><i class="bi bi-exclamation-triangle-fill me-2"></i>Salin API key ini sekarang. Kamu tidak akan bisa melihatnya lagi.</div><div class="input-group"><input type="text" class="form-control" :value="newApiKey" readonly id="newApiKeyInput"><button class="btn btn-primary" @click="copyCode(newApiKey, 'API Key')"><i class="bi bi-clipboard"></i></button></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" @click="newApiKey = null">Tutup</button></div></div></div></div>
+            <div v-if="exampleApi" class="modal fade show" style="display: block;" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Contoh Kode: {{ formatApiName(exampleApi.name) }}</h5><button type="button" class="btn-close" @click="exampleApi = null"></button></div><div class="modal-body"><ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><button class="nav-link" :class="{active: activeExampleTab === 'curl'}" @click="activeExampleTab='curl'" type="button">cURL</button></li><li class="nav-item" role="presentation"><button class="nav-link" :class="{active: activeExampleTab === 'nodejs'}" @click="activeExampleTab='nodejs'" type="button">Node.js</button></li><li class="nav-item" role="presentation"><button class="nav-link" :class="{active: activeExampleTab === 'python'}" @click="activeExampleTab='python'" type="button">Python</button></li><li class="nav-item" role="presentation"><button class="nav-link" :class="{active: activeExampleTab === 'php'}" @click="activeExampleTab='php'" type="button">PHP</button></li><li class="nav-item" role="presentation"><button class="nav-link" :class="{active: activeExampleTab === 'go'}" @click="activeExampleTab='go'" type="button">Go</button></li></ul><div class="tab-content bg-body-tertiary p-3 rounded-bottom position-relative"><div class="tab-pane fade" :class="{'show active': activeExampleTab === 'curl'}"><button class="btn btn-sm btn-secondary position-absolute top-0 end-0 mt-2 me-2" @click="copyCode(genericCurlExample, 'Contoh cURL')"><i class="bi bi-clipboard"></i></button><pre class="code-example"><code class="language-bash">{{ genericCurlExample }}</code></pre></div><div class="tab-pane fade" :class="{'show active': activeExampleTab === 'nodejs'}"><button class="btn btn-sm btn-secondary position-absolute top-0 end-0 mt-2 me-2" @click="copyCode(genericNodejsExample, 'Contoh Node.js')"><i class="bi bi-clipboard"></i></button><pre class="code-example"><code class="language-javascript">{{ genericNodejsExample }}</code></pre></div><div class="tab-pane fade" :class="{'show active': activeExampleTab === 'python'}"><button class="btn btn-sm btn-secondary position-absolute top-0 end-0 mt-2 me-2" @click="copyCode(genericPythonExample, 'Contoh Python')"><i class="bi bi-clipboard"></i></button><pre class="code-example"><code class="language-python">{{ genericPythonExample }}</code></pre></div><div class="tab-pane fade" :class="{'show active': activeExampleTab === 'php'}"><button class="btn btn-sm btn-secondary position-absolute top-0 end-0 mt-2 me-2" @click="copyCode(genericPhpExample, 'Contoh PHP')"><i class="bi bi-clipboard"></i></button><pre class="code-example"><code class="language-php">{{ genericPhpExample }}</code></pre></div><div class="tab-pane fade" :class="{'show active': activeExampleTab === 'go'}"><button class="btn btn-sm btn-secondary position-absolute top-0 end-0 mt-2 me-2" @click="copyCode(genericGoExample, 'Contoh Go')"><i class="bi bi-clipboard"></i></button><pre class="code-example"><code class="language-go">{{ genericGoExample }}</code></pre></div></div></div></div></div>
+        </div>
+        
+        <div class="copy-notification" :class="{ show: showCopyNotification }">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ copyNotificationText }}
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/vue@3"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        const { createApp } = Vue;
+        createApp({
+            data() {
+                return {
+                    user: null, currentView: 'dashboard',
+                    apiKeys: [], 
+                    security: { whitelist: [] },
+                    availableApis: [], 
+                    selectedApiKey: '', selectedApiPath: '', apiInputs: [], formValues: {}, apiResponse: null,
+                    newApiKeyName: '', newApiKey: null, newIpAddress: '',
+                    isLoading: false, isApiLoading: false,
+                    exampleApi: null, exampleApiParams: [], activeExampleTab: 'curl',
+                    isApiSelectOpen: false, apiSearchTerm: '', selectedApiName: '',
+                    isApiKeySelectOpen: false, apiKeySearchTerm: '', selectedApiKeyName: '',
+                    showCopyNotification: false, copyNotificationText: '', copyTimeout: null,
+                    userBalance: 0, topUpAmount: 100, qrisData: null, paymentCheckInterval: null,
+                    apiKeyConfig: {},
+                    transactionHistory: [],
+                    callbackSettings: { mutasiAuthUsername: '', mutasiAuthToken: '', isActive: false, qrisImagePath: '', webhookUrl: '' },
+                    qrisFileToUpload: null,
+                    isCheckingCallback: false,
+                    selectedCallbackApiKey: '',
+                    callbackCheckResult: { message: '', type: '' }
+                }
+            },
+            computed: {
+                groupedApis() { return this.availableApis.reduce((groups, api) => { const category = api.name.includes(' - ') ? api.name.split(' - ')[0].trim() : 'Lainnya'; if (!groups[category]) { groups[category] = []; } groups[category].push(api); return groups; }, {}); },
+                filteredGroupedApis() { if (!this.apiSearchTerm) { return this.groupedApis; } const searchTerm = this.apiSearchTerm.toLowerCase(); const filtered = {}; for (const category in this.groupedApis) { const matchingApis = this.groupedApis[category].filter(api => this.formatApiName(api.name).toLowerCase().includes(searchTerm)); if (matchingApis.length > 0) { filtered[category] = matchingApis; } } return filtered; },
+                filteredApiKeys() { if (!this.apiKeySearchTerm) { return this.apiKeys; } return this.apiKeys.filter(key => key.name.toLowerCase().includes(this.apiKeySearchTerm.toLowerCase())); },
+                baseUrl() { return window.location.origin; },
+                genericExamplePayload() { const p = {}; if(this.exampleApiParams) { this.exampleApiParams.forEach(i => { if (i.required) { p[i.name] = i.defaultValue !== undefined ? i.defaultValue : `CONTOH_${i.name.toUpperCase()}`; } }); } return p; },
+                genericCurlExample() { if (!this.exampleApi) return ''; const d = JSON.stringify(this.genericExamplePayload, null, 2); const method = (this.exampleApi.method || 'GET').toUpperCase(); const dataFlag = method !== 'GET' ? `\\\n  -d '${d}'` : ''; return `curl -X ${method} ${this.baseUrl}${this.exampleApi.path} \\\n  -H "Authorization: Bearer [API_KEY_MILIKMU]" \\\n  -H "Content-Type: application/json" ${dataFlag}`; },
+                genericNodejsExample() { if (!this.exampleApi) return ''; const d = JSON.stringify(this.genericExamplePayload, null, 2); return `const axios = require('axios');\n\nconst url = '${this.baseUrl}${this.exampleApi.path}';\nconst apiKey = '[API_KEY_MILIKMU]';\nconst data = ${d};\n\naxios.post(url, data, { headers: { 'Authorization': \`Bearer \${apiKey}\` } })\n  .then(response => console.log(response.data))\n  .catch(error => console.error(error.response ? error.response.data : error.message));`; },
+                genericPythonExample() { if (!this.exampleApi) return ''; const d = JSON.stringify(this.genericExamplePayload, null, 4); return `import requests\nimport json\n\nurl = "${this.baseUrl}${this.exampleApi.path}"\napi_key = "[API_KEY_MILIKMU]"\npayload = ${d}\n\nheaders = {\n    "Authorization": f"Bearer {api_key}",\n    "Content-Type": "application/json"\n}\n\nresponse = requests.post(url, headers=headers, json=payload)\n\nprint(response.json())`; },
+                genericPhpExample() { if (!this.exampleApi) return ''; const method = (this.exampleApi.method || 'GET').toUpperCase(); const payload = JSON.stringify(this.genericExamplePayload, null, 4); const isPost = method !== 'GET'; return `<?php\n\n$curl = curl_init();\n\ncurl_setopt_array($curl, [\n  CURLOPT_URL => "${this.baseUrl}${this.exampleApi.path}",\n  CURLOPT_RETURNTRANSFER => true,\n  CURLOPT_CUSTOMREQUEST => "${method}",\n` + (isPost ? `  CURLOPT_POSTFIELDS => json_encode(${payload}),\n` : '') + `  CURLOPT_HTTPHEADER => [\n    "Authorization: Bearer [API_KEY_MILIKMU]",\n    "Content-Type": "application/json"\n  ],\n]);\n\n$response = curl_exec($curl);\n$err = curl_error($curl);\n\ncurl_close($curl);\n\nif ($err) {\n  echo "cURL Error #:" . $err;\n} else {\n  echo $response;\n}`; },
+                genericGoExample() { if (!this.exampleApi) return ''; const method = (this.exampleApi.method || 'GET').toUpperCase(); const payload = JSON.stringify(this.genericExamplePayload); const isPost = method !== 'GET'; return `package main\n\nimport (\n\t"fmt"\n\t"net/http"\n\t"io"\n` + (isPost ? `\t"strings"\n` : '') + `)\n\nfunc main() {\n\turl := "${this.baseUrl}${this.exampleApi.path}"\n\tmethod := "${method}"\n\n` + (isPost ? `\tpayload := strings.NewReader(\`${payload}\`)\n` : `\tvar payload io.Reader = nil`) + `\n\n\tclient := &http.Client{}\n\treq, err := http.NewRequest(method, url, payload)\n\n\tif err != nil {\n\t\tfmt.Println(err)\n\t\treturn\n\t}\n\treq.Header.Add("Authorization", "Bearer [API_KEY_MILIKMU]")\n\treq.Header.Add("Content-Type": "application/json")\n\n\tres, err := client.Do(req)\n\tif err != nil {\n\t\tfmt.Println(err)\n\t\treturn\n\t}\n\tdefer res.Body.Close()\n\n\tbody, err := io.ReadAll(res.Body)\n\tif err != nil {\n\t\tfmt.Println(err)\n\t\treturn\n\t}\n\tfmt.Println(string(body))\n}`; }
+            },
+            methods: {
+                async checkAuthStatus() {
+                    try {
+                        const r = await fetch('/api/auth/status');
+                        const d = await r.json();
+                        if (d.loggedIn) {
+                            this.user = d.user;
+                            this.fetchInitialData();
+                        } else {
+                            window.location.href = '/login';
+                        }
+                    } catch (e) {
+                        window.location.href = '/login';
+                    }
+                },
+                async handleLogout() {
+                    await fetch('/api/auth/logout', { method: 'POST' });
+                    window.location.href = '/login';
+                },
+                 fetchInitialData() { 
+                    this.fetchAvailableApis(); this.fetchApiKeys(); this.fetchSecuritySettings(); 
+                    this.fetchUserBalance(); this.fetchApiKeyConfig(); this.fetchTransactionHistory();
+                },
+                 formatDate(dateString, withTime = false) {
+                    if (!dateString) return 'N/A';
+                    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                    if (withTime) {
+                        options.hour = '2-digit';
+                        options.minute = '2-digit';
+                    }
+                    return new Date(dateString).toLocaleDateString('id-ID', options);
+                },
+                formatApiName(name) { if (name && name.includes(' - ')) { return name.split(' - ')[1]; } return name; },
+                navigateTo(view) {
+                    this.currentView = view;
+                    if (view === 'callback') {
+                        this.fetchCallbackSettings();
+                    }
+                    if (this.$refs.navbarToggler && this.$refs.navbarToggler.getAttribute('aria-expanded') === 'true') {
+                        this.$refs.navbarToggler.click();
+                    }
+                },
+                toggleApiSelect() { this.isApiSelectOpen = !this.isApiSelectOpen; },
+                selectApi(api) { this.selectedApiPath = api.path; this.selectedApiName = this.formatApiName(api.name); this.isApiSelectOpen = false; this.apiSearchTerm = ''; this.fetchApiConfig(); },
+                toggleApiKeySelect() { this.isApiKeySelectOpen = !this.isApiKeySelectOpen; },
+                selectApiKey(key) { this.selectedApiKey = key.key; this.selectedApiKeyName = key.name; this.isApiSelectOpen = false; this.apiKeySearchTerm = ''; },
+                handleClickOutside(event) {
+                    if (this.$refs.apiSelect && !this.$refs.apiSelect.contains(event.target)) { this.isApiSelectOpen = false; }
+                    if (this.$refs.apiKeySelect && !this.$refs.apiKeySelect.contains(event.target)) { this.isApiKeySelectOpen = false; }
+                },
+                copyCode(text, type = 'Teks') {
+                    if (this.copyTimeout) clearTimeout(this.copyTimeout);
+                    navigator.clipboard.writeText(text).then(() => {
+                        this.showCopyNotification = true;
+                        this.copyNotificationText = `${type} disalin!`;
+                        this.copyTimeout = setTimeout(() => { this.showCopyNotification = false; }, 2500);
+                    });
+                },
+                downloadResponse() {
+                    if (!this.apiResponse) return;
+                    const jsonString = JSON.stringify(this.apiResponse, null, 2);
+                    const blob = new Blob([jsonString], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'response.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                },
+                async fetchAvailableApis() { 
+                    try {
+                        const res = await fetch('/api-list');
+                        const apis = await res.json();
+                        this.availableApis = apis.map(api => ({...api, method: api.method || null }));
+                        
+                        this.availableApis.forEach(async (api) => {
+                            if (api.method) return; 
+                            try {
+                                const res = await fetch(`${api.path}/config`);
+                                const config = await res.json();
+                                api.method = (config.inputs && config.inputs.length > 0) ? 'POST' : 'GET';
+                            } catch (error) {
+                                api.method = 'GET';
+                            }
+                        });
+                    } catch(e) {
+                        console.error(e);
+                    }
+                },
+                async fetchApiConfig() { if (!this.selectedApiPath) return; this.apiResponse = null; this.apiInputs = []; this.formValues = {}; try { const r = await fetch(this.selectedApiPath + '/config'); const c = await r.json(); this.apiInputs = c.inputs || []; this.apiInputs.forEach(i => { this.formValues[i.name] = i.defaultValue !== undefined ? i.defaultValue : (i.type === 'select' && i.options && i.options.length > 0 ? i.options[0].value : ''); }); } catch (e) { console.error(e); } },
+                async executeApi() { 
+                    if (!this.selectedApiKey) { alert('Pilih API Key.'); return; } 
+                    this.isApiLoading = true; 
+                    try { 
+                        const r = await fetch(this.selectedApiPath, { method: (this.apiInputs.length > 0 ? 'POST' : 'GET'), headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.selectedApiKey}` }, body: (this.apiInputs.length > 0 ? JSON.stringify(this.formValues) : null) }); 
+                        this.apiResponse = await r.json(); 
+                    } catch (e) { this.apiResponse = { success: false, message: e.message }; } 
+                    finally { this.isApiLoading = false; this.$nextTick(() => { if(window.Prism) Prism.highlightAll(); }); } 
+                },
+                async fetchApiKeys() { try { const r = await fetch('/api/apikeys'); const d = await r.json(); if (d.success) this.apiKeys = d.apiKeys; } catch(e) { console.error(e) } },
+                async generateApiKey() { 
+                    if (!this.newApiKeyName) return; this.isLoading = true; 
+                    try { 
+                        const r = await fetch('/api/apikeys', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: this.newApiKeyName }) }); 
+                        const d = await r.json(); 
+                        if (d.success) { this.newApiKey = d.apiKey; this.newApiKeyName = ''; this.fetchApiKeys(); this.fetchUserBalance(); } 
+                        else { alert(`Gagal: ${d.message}`); } 
+                    } catch(e) { alert('Terjadi kesalahan jaringan.'); } 
+                    finally { this.isLoading = false; } 
+                },
+                async deleteApiKey(keyId) { if (confirm('Yakin ingin hapus key ini?')) { await fetch(`/api/apikeys/${keyId}`, { method: 'DELETE' }); this.fetchApiKeys(); } },
+                async fetchSecuritySettings() { try { const r = await fetch('/api/security'); const d = await r.json(); if (d.success) this.security = d.settings; } catch(e) { console.error(e) } },
+                async addIp(listType) { this.isLoading = true; try { const r = await fetch(`/api/security/${listType}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip: this.newIpAddress }) }); const d = await r.json(); if (d.success) { this.newIpAddress = ''; this.fetchSecuritySettings(); } else { alert(`Gagal: ${d.message}`); } } catch(e) { alert('Terjadi kesalahan jaringan.'); } finally { this.isLoading = false; } },
+                async removeIp(listType, ip) { if (confirm(`Yakin hapus IP ${ip} dari ${listType}?`)) { await fetch(`/api/security/${listType}`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip }) }); this.fetchSecuritySettings(); } },
+                async showExampleModal(api, tab) {
+                    this.exampleApi = api; this.activeExampleTab = tab; this.exampleApiParams = [];
+                    try {
+                        const res = await fetch(`${api.path}/config`);
+                        if(res.ok) {
+                            const config = await res.json();
+                            this.exampleApiParams = config.inputs || [];
+                        }
+                    } catch (e) { this.exampleApiParams = []; } 
+                    finally { this.$nextTick(() => { if(window.Prism) Prism.highlightAll(); }); }
+                },
+                async fetchApiKeyConfig() { try { const res = await fetch('/api/config/apikey'); const data = await res.json(); if (data.success) { this.apiKeyConfig = { price: data.price, duration: data.duration }; } } catch (e) { console.error("Gagal mengambil konfigurasi API Key"); } },
+                async fetchUserBalance() { try { const res = await fetch('/api/billing/balance'); const data = await res.json(); if(data.success) this.userBalance = data.balance; } catch (e) { console.error("Gagal fetch saldo"); } },
+                async fetchTransactionHistory() { try { const res = await fetch('/api/billing/history'); const data = await res.json(); if (data.success) { this.transactionHistory = data.history; } } catch (e) { console.error("Gagal mengambil riwayat transaksi."); } },
+                async handleTopUp() {
+                    this.isLoading = true;
+                    try {
+                        const res = await fetch('/api/billing/initiate-qris', {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ amount: this.topUpAmount })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            const userSettings = await fetch('/api/callback/settings');
+                            const settingsData = await userSettings.json();
+                            this.qrisData = { ...data, qrisPath: settingsData.success ? settingsData.settings.qrisImagePath : null };
+                            this.startPaymentCheck();
+                        } else {
+                            if (res.status === 409 && data.pendingTransaction) {
+                                alert(data.message);
+                                const userSettings = await fetch('/api/callback/settings');
+                                const settingsData = await userSettings.json();
+                                this.qrisData = { ...data.pendingTransaction, qrisPath: settingsData.success ? settingsData.settings.qrisImagePath : null };
+                                this.startPaymentCheck();
+                            } else {
+                                alert(data.message);
+                            }
+                        }
+                    } catch(e) { 
+                        alert('Gagal memulai transaksi.');
+                    } 
+                    finally { this.isLoading = false; }
+                },
+                startPaymentCheck() {
+                    if (this.paymentCheckInterval) clearInterval(this.paymentCheckInterval);
+                    this.paymentCheckInterval = setInterval(async () => {
+                        if (!this.qrisData) { clearInterval(this.paymentCheckInterval); return; }
+                        try {
+                            const res = await fetch(`/api/billing/status/${this.qrisData.orderId}`);
+                            const data = await res.json();
+                            if(data.status === 'completed') {
+                                clearInterval(this.paymentCheckInterval);
+                                this.qrisData = null;
+                                this.copyNotificationText = 'Top up berhasil!'; this.showCopyNotification = true;
+                                this.copyTimeout = setTimeout(() => { this.showCopyNotification = false; }, 3000);
+                                this.fetchUserBalance(); this.fetchTransactionHistory();
+                            }
+                            if (new Date() > new Date(this.qrisData.expiresAt)) {
+                                clearInterval(this.paymentCheckInterval);
+                                alert('Waktu pembayaran habis.');
+                                this.qrisData = null;
+                                this.fetchTransactionHistory();
+                            }
+                        } catch (e) { clearInterval(this.paymentCheckInterval); }
+                    }, 5000);
+                },
+                async fetchCallbackSettings() {
+                    try {
+                        const res = await fetch('/api/callback/settings');
+                        const data = await res.json();
+                        if(data.success && data.settings) {
+                            this.callbackSettings = data.settings;
+                            this.callbackSettings.mutasiAuthToken = ''; 
+                        }
+                    } catch (e) { console.error('Gagal mengambil pengaturan callback'); }
+                },
+                handleQrisFileChange(event) {
+                    this.qrisFileToUpload = event.target.files[0];
+                },
+                async saveCallbackSettings() {
+                    this.isLoading = true;
+                    try {
+                        if (this.qrisFileToUpload) {
+                            const formData = new FormData();
+                            formData.append('qrisImage', this.qrisFileToUpload);
+                            const uploadRes = await fetch('/api/callback/upload-qris', { method: 'POST', body: formData });
+                            const uploadData = await uploadRes.json();
+                            if (!uploadData.success) { throw new Error(uploadData.message); }
+                            this.callbackSettings.qrisImagePath = uploadData.path;
+                            this.qrisFileToUpload = null;
+                        }
+                        const settingsToSave = {
+                            mutasiAuthUsername: this.callbackSettings.mutasiAuthUsername,
+                            isActive: this.callbackSettings.isActive,
+                            webhookUrl: this.callbackSettings.webhookUrl
+                        };
+                        if (this.callbackSettings.mutasiAuthToken) {
+                            settingsToSave.mutasiAuthToken = this.callbackSettings.mutasiAuthToken;
+                        }
+                        const settingsRes = await fetch('/api/callback/settings', {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(settingsToSave)
+                        });
+                        const settingsData = await settingsRes.json();
+                        if (!settingsData.success) { throw new Error(settingsData.message); }
+                        this.copyNotificationText = 'Pengaturan berhasil disimpan!';
+                        this.showCopyNotification = true;
+                        this.copyTimeout = setTimeout(() => { this.showCopyNotification = false; }, 2500);
+                        this.callbackSettings.mutasiAuthToken = '';
+                    } catch(e) {
+                        alert(`Error: ${e.message}`);
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                async triggerCallbackCheck() {
+                    this.callbackCheckResult = { message: '', type: '' };
+                    if (!this.selectedCallbackApiKey) {
+                        this.callbackCheckResult = { message: 'Silakan pilih API Key untuk melakukan pengecekan.', type: 'danger' };
+                        return;
+                    }
+                    this.isCheckingCallback = true;
+                    try {
+                        const res = await fetch('/api/callback/check', {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${this.selectedCallbackApiKey}` }
+                        });
+                        const data = await res.json();
+                        this.callbackCheckResult = {
+                            message: data.message,
+                            type: data.success ? 'success' : 'danger'
+                        };
+                    } catch (e) {
+                        this.callbackCheckResult = { message: 'Terjadi kesalahan jaringan.', type: 'danger' };
+                    } finally {
+                        this.isCheckingCallback = false;
+                    }
+                }
+            },
+            mounted() {
+                this.checkAuthStatus();
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

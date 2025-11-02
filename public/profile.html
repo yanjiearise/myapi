@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Saya - Bovalone API</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div id="profile-app" class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                     <h2 class="main-title">Profil Saya</h2>
+                     <a href="/dashboard" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Kembali ke Dashboard</a>
+                </div>
+
+                <div v-if="message.text" :class="`alert alert-${message.type}`" v-html="message.text"></div>
+
+                <div class="card mb-4">
+                    <div class="card-header"><h5 class="mb-0">Ubah Username</h5></div>
+                    <div class="card-body">
+                        <form @submit.prevent="requestUsernameChange" v-if="usernameChangeState === 'form'">
+                            <div class="mb-3">
+                                <label class="form-label">Username Saat Ini</label>
+                                <input type="text" v-model="profileForm.username" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-primary" :disabled="isLoading.username">
+                                <span v-if="isLoading.username" class="spinner-border spinner-border-sm"></span> Simpan Username
+                            </button>
+                        </form>
+                        <form @submit.prevent="confirmUsernameChange" v-if="usernameChangeState === 'otp'">
+                             <p class="text-secondary">Kami telah mengirim kode ke emailmu. Masukkan untuk konfirmasi.</p>
+                             <div class="mb-3"><label class="form-label">Kode Verifikasi</label><input type="text" v-model="usernameForm.otp" class="form-control" required></div>
+                             <button type="submit" class="btn btn-success" :disabled="isLoading.username">
+                                <span v-if="isLoading.username" class="spinner-border spinner-border-sm"></span> Konfirmasi
+                            </button>
+                            <button type="button" class="btn btn-secondary ms-2" @click="usernameChangeState = 'form'">Batal</button>
+                        </form>
+                    </div>
+                </div>
+
+                 <div class="card mb-4">
+                    <div class="card-header"><h5 class="mb-0">Ubah Email</h5></div>
+                    <div class="card-body">
+                        <form @submit.prevent="updateEmail">
+                             <div class="mb-3">
+                                <label class="form-label">Email Saat Ini</label>
+                                <input type="email" v-model="profileForm.email" class="form-control">
+                                <div class="form-text">Mengubah email akan membuatmu logout dan perlu verifikasi ulang.</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary" :disabled="isLoading.email">
+                                <span v-if="isLoading.email" class="spinner-border spinner-border-sm"></span> Simpan Email
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header"><h5 class="mb-0">Ubah Password</h5></div>
+                    <div class="card-body">
+                         <form @submit.prevent="requestPasswordChange" v-if="passwordChangeState === 'form'">
+                            <div class="mb-3"><label class="form-label">Password Saat Ini</label><input type="password" v-model="passwordForm.currentPassword" class="form-control" required></div>
+                            <div class="mb-3"><label class="form-label">Password Baru</label><input type="password" v-model="passwordForm.newPassword" class="form-control" required></div>
+                            <button type="submit" class="btn btn-primary" :disabled="isLoading.password">
+                                <span v-if="isLoading.password" class="spinner-border spinner-border-sm"></span> Ubah Password
+                            </button>
+                        </form>
+                         <form @submit.prevent="confirmPasswordChange" v-if="passwordChangeState === 'otp'">
+                             <p class="text-secondary">Kami telah mengirim kode ke emailmu. Masukkan untuk konfirmasi.</p>
+                             <div class="mb-3"><label class="form-label">Kode Verifikasi</label><input type="text" v-model="passwordForm.otp" class="form-control" required></div>
+                             <button type="submit" class="btn btn-success" :disabled="isLoading.password">
+                                <span v-if="isLoading.password" class="spinner-border spinner-border-sm"></span> Konfirmasi
+                            </button>
+                             <button type="button" class="btn btn-secondary ms-2" @click="passwordChangeState = 'form'">Batal</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card border-danger">
+                    <div class="card-header bg-danger-subtle text-danger-emphasis"><h5 class="mb-0">Zona Berbahaya</h5></div>
+                    <div class="card-body">
+                        <p>Menghapus akun adalah tindakan permanen dan semua datamu, termasuk API Keys dan riwayat transaksi, akan hilang selamanya.</p>
+                         <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">Hapus Akun Saya</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="deleteAccountModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Konfirmasi Hapus Akun</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Ini adalah aksi terakhir dan tidak bisa dibatalkan. Kamu yakin?</p>
+                        <p>Untuk konfirmasi, silakan masukkan password-mu saat ini.</p>
+                        <div class="form-floating">
+                            <input type="password" class="form-control" v-model="deleteForm.password" placeholder="Password Saat Ini">
+                            <label>Password Saat Ini</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-danger" @click="deleteAccount" :disabled="isLoading.delete">
+                             <span v-if="isLoading.delete" class="spinner-border spinner-border-sm"></span> Hapus Akun Permanen
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/vue@3"></script>
+    <script>
+        const { createApp } = Vue;
+        createApp({
+            data() {
+                return {
+                    profileForm: { username: '', email: '' },
+                    usernameForm: { otp: '' },
+                    passwordForm: { currentPassword: '', newPassword: '', otp: ''},
+                    deleteForm: { password: '' },
+                    message: { text: '', type: 'info' },
+                    isLoading: { username: false, email: false, password: false, delete: false },
+                    usernameChangeState: 'form',
+                    passwordChangeState: 'form'
+                }
+            },
+            methods: {
+                async fetchProfile() {
+                    try {
+                        const res = await fetch('/api/auth/status');
+                        const data = await res.json();
+                        if (data.loggedIn && data.user) {
+                            this.profileForm.username = data.user.username;
+                            this.profileForm.email = data.user.email;
+                        } else {
+                            window.location.href = '/login';
+                        }
+                    } catch (e) {
+                        window.location.href = '/login';
+                    }
+                },
+                async requestUsernameChange() {
+                    this.isLoading.username = true;
+                    this.message = {};
+                    const res = await fetch('/api/profile/request-username-change', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: this.profileForm.username })
+                    });
+                    const data = await res.json();
+                    this.message = { text: data.message, type: data.success ? 'success' : 'danger' };
+                    if (data.success) this.usernameChangeState = 'otp';
+                    this.isLoading.username = false;
+                },
+                async confirmUsernameChange() {
+                    this.isLoading.username = true;
+                    this.message = {};
+                    const res = await fetch('/api/profile/confirm-username-change', {
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: this.profileForm.username, otp: this.usernameForm.otp })
+                    });
+                    const data = await res.json();
+                    this.message = { text: data.message, type: data.success ? 'success' : 'danger' };
+                    if (data.success) {
+                        this.usernameChangeState = 'form';
+                        this.usernameForm.otp = '';
+                        await this.fetchProfile();
+                    }
+                    this.isLoading.username = false;
+                },
+                 async updateEmail() {
+                    this.isLoading.email = true;
+                    this.message = {};
+                    const res = await fetch('/api/profile/update-email', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: this.profileForm.email })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.message = { text: `${data.message} Mengalihkan ke halaman verifikasi...`, type: 'success' };
+                        setTimeout(() => window.location.href = `/verify?email=${encodeURIComponent(this.profileForm.email)}`, 3000);
+                    } else {
+                        this.message = { text: data.message, type: 'danger' };
+                    }
+                    this.isLoading.email = false;
+                },
+                async requestPasswordChange() {
+                    this.isLoading.password = true;
+                    this.message = {};
+                    const res = await fetch('/api/profile/request-password-change', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(this.passwordForm)
+                    });
+                    const data = await res.json();
+                    this.message = { text: data.message, type: data.success ? 'success' : 'danger' };
+                    if (data.success) this.passwordChangeState = 'otp';
+                    this.isLoading.password = false;
+                },
+                async confirmPasswordChange() {
+                    this.isLoading.password = true;
+                    this.message = {};
+                    const res = await fetch('/api/profile/confirm-password-change', {
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ newPassword: this.passwordForm.newPassword, otp: this.passwordForm.otp })
+                    });
+                    const data = await res.json();
+                    this.message = { text: data.message, type: data.success ? 'success' : 'danger' };
+                    if(data.success) {
+                        this.passwordChangeState = 'form';
+                        this.passwordForm = { currentPassword: '', newPassword: '', otp: '' };
+                    }
+                    this.isLoading.password = false;
+                },
+                async deleteAccount() {
+                    this.isLoading.delete = true;
+                    this.message = {};
+                    const res = await fetch('/api/profile/delete-account', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(this.deleteForm)
+                    });
+                    const data = await res.json();
+                    if(data.success) {
+                        alert(data.message);
+                        window.location.href = '/login';
+                    } else {
+                         alert('Gagal: ' + data.message);
+                    }
+                    this.isLoading.delete = false;
+                }
+            },
+            mounted() {
+                this.fetchProfile();
+            }
+        }).mount('#profile-app');
+    </script>
+</body>
+</html>

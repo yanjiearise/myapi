@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produk Digital - Bovalone API</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.css" />
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div id="digital-app" class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                     <h2 class="main-title">Pemesanan Produk Digital</h2>
+                     <a href="/dashboard" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Kembali ke Dashboard</a>
+                </div>
+
+                <div id="message-container"></div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-lg-5">
+                                <h5 class="mb-3">Form Pemesanan</h5>
+                                <form id="order-form">
+                                    <div class="mb-3">
+                                        <label class="form-label">API Key</label>
+                                        <select class="form-select" id="api-key-select" required>
+                                            <option disabled selected value="">-- Pilih API Key --</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Auth Username (Orderkuota)</label>
+                                        <input type="text" id="auth-username" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Auth Token (Orderkuota)</label>
+                                        <input type="password" id="auth-token" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Produk</label>
+                                        <div class="input-group">
+                                            <select class="form-control" id="product-select" style="width: 100%;" disabled></select>
+                                        </div>
+                                         <button class="btn btn-sm btn-outline-info w-100 mt-2" type="button" id="get-products-btn">
+                                            Ambil Produk
+                                        </button>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Nomor Tujuan</label>
+                                        <input type="text" id="target-number" class="form-control" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100" id="order-btn">
+                                        Pesan Sekarang
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-lg-7">
+                                <h5 class="mb-3">Hasil</h5>
+                                <div id="result-container">
+                                    <div class="text-center p-5 bg-body-secondary rounded"><p class="text-muted m-0">Hasil pesanan akan muncul di sini.</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            const apiKeySelect = $('#api-key-select');
+            const productSelect = $('#product-select');
+
+            function showAlert(message, type = 'danger') {
+                $('#message-container').html(`<div class="alert alert-${type}">${message}</div>`);
+            }
+            
+            async function fetchApiKeys() {
+                try {
+                    const res = await fetch('/api/apikeys');
+                    const data = await res.json();
+                    if (data.success) {
+                        data.apiKeys.forEach(key => {
+                            apiKeySelect.append(new Option(key.name, key.key));
+                        });
+                    }
+                } catch (e) {
+                    showAlert('Gagal memuat API Keys.');
+                }
+            }
+            
+            productSelect.select2({
+                theme: "bootstrap-5",
+                placeholder: "Ambil produk terlebih dahulu",
+                width: '100%'
+            });
+
+            $('#get-products-btn').on('click', async function() {
+                const btn = $(this);
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Mengambil...');
+
+                const apiKey = apiKeySelect.val();
+                const authToken = $('#auth-token').val();
+                const authUsername = $('#auth-username').val();
+                
+                if (!apiKey || !authToken || !authUsername) {
+                    showAlert('API Key, Auth Username, dan Auth Token wajib diisi.');
+                    btn.prop('disabled', false).html('Ambil Produk');
+                    return;
+                }
+
+                try {
+                    const res = await fetch('/api/digital/get-products', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                        body: JSON.stringify({ authToken, authUsername })
+                    });
+                    
+                    const data = await res.json();
+                    
+                    if (data.success && data.vouchers && data.vouchers.results) {
+                        const products = data.vouchers.results;
+                        
+                        const sortedProducts = products
+                            .filter(p => p && p.provider && p.name)
+                            .sort((a, b) => a.name.localeCompare(b.name));
+                            
+                        const groupedProducts = sortedProducts.reduce((acc, product) => {
+                            const provider = product.provider.name;
+                            if (!acc[provider]) {
+                                acc[provider] = { text: provider, children: [] };
+                            }
+                            acc[provider].children.push({
+                                id: product.id,
+                                text: `${product.name} (Rp${product.price.toLocaleString('id-ID')})`
+                            });
+                            return acc;
+                        }, {});
+
+                        productSelect.empty().select2({
+                            theme: "bootstrap-5",
+                            placeholder: "Pilih produk",
+                            width: '100%',
+                            data: Object.values(groupedProducts)
+                        }).prop('disabled', false);
+                        
+                        showAlert(`Berhasil memuat ${products.length} produk.`, 'success');
+                    } else {
+                        showAlert(data.message || 'Gagal memuat produk. Periksa kembali kredensial Orderkuota.');
+                    }
+                } catch (e) {
+                    showAlert('Terjadi kesalahan jaringan saat mengambil produk.');
+                } finally {
+                    btn.prop('disabled', false).html('Ambil Produk');
+                }
+            });
+
+            $('#order-form').on('submit', async function(e) {
+                e.preventDefault();
+                const btn = $('#order-btn');
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Memesan...');
+                
+                const resultContainer = $('#result-container');
+                resultContainer.html('<div class="text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-secondary">Memproses pesanan...</p></div>');
+
+                const payload = {
+                    apiKey: apiKeySelect.val(),
+                    authToken: $('#auth-token').val(),
+                    authUsername: $('#auth-username').val(),
+                    voucherId: productSelect.val(),
+                    targetNumber: $('#target-number').val()
+                };
+                
+                try {
+                    const res = await fetch('/api/digital/order', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${payload.apiKey}` },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    const formattedJson = JSON.stringify(data, null, 2);
+                    resultContainer.html(`<pre class="response-pre"><code class="language-json">${formattedJson}</code></pre>`);
+                    Prism.highlightAll();
+                     if (!data.success) {
+                        showAlert(data.message || 'Pemesanan gagal.', 'danger');
+                    }
+                } catch (e) {
+                     resultContainer.html(`<pre class="response-pre"><code class="language-json">${JSON.stringify({ success: false, message: 'Terjadi kesalahan jaringan.' }, null, 2)}</code></pre>`);
+                } finally {
+                    btn.prop('disabled', false).html('Pesan Sekarang');
+                }
+            });
+
+            fetchApiKeys();
+        });
+    </script>
+</body>
+</html>

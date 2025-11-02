@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bovalone API - Notifikasi Pembayaran Real-time</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="landing.css">
+</head>
+<body class="landing-page">
+
+    <nav class="navbar fixed-top landing-nav">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="navbar-brand fw-bold" href="/"><i class="bi bi-box-fill me-2"></i>Bovalone API</a>
+            <div>
+                <a id="nav-login-btn" href="/login" class="btn btn-outline-light btn-sm">Login</a>
+                <a id="nav-dashboard-btn" href="/dashboard" class="btn btn-primary btn-sm" style="display: none;">Masuk ke Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero-section text-center">
+        <div class="container">
+            <img src="/landing.png" alt="Ilustrasi API" class="hero-image">
+            <h1 class="hero-title">Notifikasi Pembayaran QRIS Otomatis</h1>
+            <p class="hero-subtitle mx-auto">Hubungkan mutasi QRIS dari provider Orderkuota ke sistemmu. Terima notifikasi pembayaran instan via Email & Webhook, sehingga kamu bisa fokus pada bisnis.</p>
+            <a href="/register" class="btn btn-primary btn-md mt-4">Mulai Sekarang, Gratis Daftar</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="features" class="text-center section-padding">
+            <h2 class="section-title">Fitur Unggulan</h2>
+            <p class="section-subtitle mx-auto">Berbagai layanan API siap pakai untuk mendukung bisnismu.</p>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon text-primary"><i class="bi bi-bell-fill"></i></div>
+                        <h3 class="feature-title">Notifikasi Real-Time</h3>
+                        <p class="feature-text">Dapatkan pemberitahuan instan melalui Email dan Webhook kustom-mu setiap kali transaksi berhasil.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon text-success"><i class="bi bi-plug-fill"></i></div>
+                        <h3 class="feature-title">Integrasi Mudah</h3>
+                        <p class="feature-text">Cukup siapkan URL webhook-mu dan biarkan sistem kami yang bekerja. Dilengkapi dokumentasi lengkap.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon text-warning"><i class="bi bi-shield-check"></i></div>
+                        <h3 class="feature-title">Aman & Andal</h3>
+                        <p class="feature-text">Kredensialmu dienkripsi dan kami menyediakan fitur keamanan seperti Whitelist IP untuk melindungi akunmu.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-4 mt-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon text-info"><i class="bi bi-wallet2"></i></div>
+                        <h3 class="feature-title">Cek E-Wallet</h3>
+                        <p class="feature-text">Lakukan pengecekan saldo atau validasi akun untuk berbagai e-wallet seperti DANA, OVO, ShopeePay, dan lainnya.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon" style="color: #fd7e14;"><i class="bi bi-truck"></i></div>
+                        <h3 class="feature-title">Cek Resi</h3>
+                        <p class="feature-text">Integrasikan layanan pelacakan pengiriman dari berbagai kurir ekspedisi langsung di aplikasimu.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon" style="color: #6f42c1;"><i class="bi bi-shop"></i></div>
+                        <h3 class="feature-title">API Pasarkuota</h3>
+                        <p class="feature-text">Akses layanan dan produk digital dari Pasarkuota, mulai dari pulsa, paket data, hingga token listrik.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pricing" class="text-center section-padding">
+            <h2 class="section-title">Harga Transparan</h2>
+            <p class="section-subtitle mx-auto">Satu harga untuk semua fitur, tanpa biaya tersembunyi.</p>
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-8">
+                    <div class="pricing-card">
+                        <h3 class="pricing-title">Paket Standar</h3>
+                        <div class="pricing-price"><sup>Rp</sup><span id="landing-price">...</span><span id="landing-duration" class="pricing-duration">/ ... hari</span></div>
+                        <ul class="list-unstyled pricing-features">
+                            <li>Akses ke semua API</li>
+                            <li>Notifikasi Email & Webhook</li>
+                            <li>Keamanan Whitelist IP</li>
+                            <li>Dukungan Penuh</li>
+                        </ul>
+                        <a href="/register" class="btn btn-primary w-100">Pilih Paket Ini</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="faq" class="section-padding">
+            <h2 class="section-title text-center">Pertanyaan Umum (FAQ)</h2>
+            <p class="section-subtitle text-center mx-auto">Jawaban atas beberapa pertanyaan yang paling sering diajukan.</p>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-1">
+                                    Apa saja yang saya dapatkan dengan Paket Standar?
+                                </button>
+                            </h2>
+                            <div id="faq-1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Kamu mendapatkan akses penuh ke semua fitur yang tersedia, termasuk notifikasi pembayaran QRIS, API cek e-wallet, cek resi, dan API Pasarkuota. Kamu juga mendapatkan fitur keamanan Whitelist IP dan kemampuan untuk membuat beberapa API Key.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-2">
+                                    Bagaimana cara kerja notifikasi QRIS?
+                                </button>
+                            </h2>
+                            <div id="faq-2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Sistem bekerja dengan memonitor riwayat mutasi dari akun Orderkuota milikmu. Kamu mengatur sebuah pemanggil otomatis (cron job) yang memicu endpoint pengecekan kami. Jika ada mutasi baru, kami akan langsung mengirim notifikasi ke email dan Webhook URL yang telah kamu daftarkan.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-3">
+                                    Apakah saya perlu server sendiri untuk menggunakan Webhook URL?
+                                </button>
+                            </h2>
+                            <div id="faq-3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Tidak perlu. Kamu bisa menggunakan layanan otomasi gratis seperti Make.com atau Zapier untuk membuat Webhook URL. Layanan ini dapat menerima notifikasi dari kami dan meneruskannya ke aplikasi lain seperti Telegram, Google Sheets, atau Discord tanpa perlu coding.
+                                </div>
+                            </div>
+                        </div>
+                         <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-4">
+                                   Seberapa sering saya bisa melakukan pengecekan mutasi?
+                                </button>
+                            </h2>
+                            <div id="faq-4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Kamu memiliki kontrol penuh atas frekuensi pengecekan melalui pengaturan cron job-mu. Kami merekomendasikan jadwal setiap 1 hingga 5 menit untuk mendapatkan keseimbangan terbaik antara kecepatan notifikasi dan efisiensi.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-5">
+                                    Apakah data kredensial saya aman?
+                                </button>
+                            </h2>
+                            <div id="faq-5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Ya. Kami memprioritaskan keamanan. Kredensial sensitif seperti Token Mutasi milikmu dienkripsi di dalam database kami. Selain itu, fitur Whitelist IP memungkinkanmu untuk membatasi akses API Key hanya dari server tepercaya.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-4 mt-4">
+        <div class="container">
+            <p class="text-secondary mb-0">&copy; 2025 Bovalone API. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/auth/status');
+                const data = await response.json();
+                if (data.loggedIn) {
+                    document.getElementById('nav-login-btn').style.display = 'none';
+                    document.getElementById('nav-dashboard-btn').style.display = 'inline-block';
+                }
+            } catch (error) {
+                console.error('Could not check auth status');
+            }
+
+            try {
+                const response = await fetch('/api/public/settings');
+                const data = await response.json();
+                if(data.success) {
+                    document.getElementById('landing-price').textContent = data.price.toLocaleString('id-ID');
+                    document.getElementById('landing-duration').textContent = `/ ${data.duration} hari`;
+                }
+            } catch (error) {
+                 document.getElementById('landing-price').textContent = 'N/A';
+            }
+        });
+    </script>
+</body>
+</html>
